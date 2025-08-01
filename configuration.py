@@ -147,7 +147,7 @@ class Config:
                 if "gen_harnesses" in conf["config"]:
                     Config.gen_harnesses = conf["config"]["gen_harnesses"].lower() == "true"
                 if "try_compile" in conf["config"]:
-                    Config.gen_harnesses = conf["config"]["try_compile"].lower() == "true"
+                    Config.try_compile = conf["config"]["try_compile"].lower() == "true"
                 if "worker_region" in conf["config"]:
                     Config.worker_region = conf["config"]["worker_region"]
                 if "arbiter_region" in conf["config"]:
