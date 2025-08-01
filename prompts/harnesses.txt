@@ -1,0 +1,20 @@
+You will now learn how to write harnesses (proofs) for the contract preconditions you've generated.
+After that, you'll be asked to create harnesses (proofs) for each function that you annotated.
+
+Step 1: Learn the Basics
+Read this brief introduction to Kani's contracts:
+https://model-checking.github.io/kani/reference/experimental/contracts.html
+
+Step 2: Deepen Your Understanding
+For more details, review this blog post:
+https://model-checking.github.io/kani-verifier-blog/2024/01/29/function-contracts.html
+
+Step 3: Study Real Examples
+Examine how `proof_for_contract` is implemented and used in the following Rust files:
+
+- https://raw.githubusercontent.com/model-checking/verify-rust-std/refs/heads/main/library/core/src/ptr/unique.rs
+- https://raw.githubusercontent.com/model-checking/verify-rust-std/refs/heads/main/library/core/src/alloc/layout.rs
+- https://raw.githubusercontent.com/model-checking/verify-rust-std/refs/heads/main/library/core/src/time.rs
+- https://raw.githubusercontent.com/model-checking/verify-rust-std/refs/heads/main/library/core/src/ptr/mod.rs
+- https://raw.githubusercontent.com/model-checking/verify-rust-std/refs/heads/main/library/core/src/ffi/c_str.rs
+- https://raw.githubusercontent.com/model-checking/verify-rust-std/refs/heads/main/library/core/src/mem/mod.rs

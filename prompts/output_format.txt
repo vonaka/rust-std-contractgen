@@ -1,0 +1,65 @@
+For each function that requires update, you should print:
+
+1. The structure this function belongs to. If the function is inside an
+   implementation (block of code starting with impl), you should write the
+   name of the structure. If the function is defined at the top level
+   (does not belong to any implementation), you should print the word
+   _None instead.
+2. The preconditions (the `requires` rust code) separated by the newline (group
+   short preconditions into one `requires`).
+3. The name of the function (the function definition) exactly as it was
+   written in the original source file.
+
+Print them in the same order they are written in the initial source code. Print
+just the code, without any explanations or preambles, just as if you are writing
+the program. Do not add ```rust and ``` at the beginning and the end. Make sure
+you don't miss any updated function.
+
+Consider the following example:
+```rust
+    pub const fn dangling(&self) -> NonNull<u8> {
+      // SAFETY: align is guaranteed to be non-zero
+    }
+
+    impl<T: Ord, A: Allocator> I for Heap<T, A> {
+        pub fn iter(&self) -> Iter<'_, T> {
+          Iter { iter: self.data.iter() }
+        }
+
+        unsafe fn up(&mut self, start: usize, pos: usize) -> usize {
+          // SAFETY: The caller guarantees that pos < self.len()
+        }
+    }
+```
+
+For this example, you should print:
+
+_None
+#[requires(self.align() != 0)]
+dangling
+
+Heap
+#[requires(pos < self.len())]
+up
+
+Moreover, for each function agrument that is a reference and that the function
+modifies, you should add special `kani::modifies` attribute. For eaxmple, if
+the above `dangling` function somehow modifies `self.data`, you should print:
+
+_None
+#[requires(self.align() != 0)]
+#[cfg_attr(kani, kani::modifies(self.data))]
+dangling
+
+Heap
+#[requires(pos < self.len())]
+up
+
+This particular modification should only be applied when `self.data` is a
+pointer or a reference. Otherwise, use `kani::modifies(self)` instead of
+`kani::modifies(self.data)` (because self is a reference), or better
+`kani::modifies(self.data.as_ptr())` (if `as_ptr` is defined, as is the case
+when `self.data` is of type `Vec`, for example). If you cannot confidently
+determine whether a variable qualifies for the inclusion in a `modifies`
+attribute, simply remove this specific attribute entirely. It is better to
+make fewer modifications than to introduce incorrect ones.

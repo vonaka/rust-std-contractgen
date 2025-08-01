@@ -1,0 +1,23 @@
+Pay attention to the following.
+
+Common Mistakes to Fix:
+1. The annotated method uses a variable named `this`, but the contract refers to `self`. In this
+   case `self` should be renamed to `this`.
+2. The `modifies` attributes are either not generated or are generated with incorrect arguments.
+3. A `modifies` attribute references a variable that is not a pointer or reference. This needs to be
+   corrected, as `modifies` should only apply to references or pointers.
+4. The name of the annotated function in the output does not exactly match the name in the original
+   source file. This should be fixed.
+5. Expressions like `pos < end <= self.len()` are not valid in Rust. This should be written as
+   `pos < end && end <= self.len()`.
+6. A field of a structure is accessed directly instead of being accessed through the structure's
+   variable; i.e., using `field` instead of `self.field`.
+7. A function appears in the output but is not annotated. In this case, the corresponding function
+   should be removed from the output.
+8. The output is missing the name of the structure for the annotated functions.
+9. Contracts refere to `std::` -- this is forbidden.
+10. In Rust, `a ==> b` is not a valid way to express the logical implication. This should be
+    replaced by `!(a) || b`.
+
+With that, correct your mistakes (if any) and print the complete, corrected solution without
+additional explanations.

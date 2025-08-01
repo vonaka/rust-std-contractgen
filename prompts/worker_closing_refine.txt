@@ -1,0 +1,13 @@
+1. Remember that your updates should be written in the same order in which the
+corresponding functions appear in the original source file.
+
+2. Do not generate duplicates: if the original code already contains `requires`
+annotations or assertions that cover or imply all of your intended annotations
+for a function, then omit those annotations and exclude them from your response.
+
+3. Remember that only pointers and references can be used in `modifies`.
+
+4. If the filename starts with "library-core" you must replace `std::` in your
+annotations by `crate::`, otherwise, it should be replaced by `core::`.
+
+Correct and print your solution without any additional explanation.
