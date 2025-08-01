@@ -149,10 +149,8 @@ class Conversation:
                 continue
             except self.bedrock_client.exceptions.AccessDeniedException:
                 print(style.red("Access Denied"))
-                print(
-                    f'Make sure that the model ({self.bedrock_model}) is available in your region ({self.bedrock_region})')
-                print(
-                    f'Configure the region in the config file: [worker_region|arbiter_region] = region')
+                print(f'Make sure that the model ({self.bedrock_model}) is available in your region ({self.bedrock_region})')
+                print(f'Configure the region in the config file: [worker_region|arbiter_region] = region')
                 self.bedrock_client.close()
                 sys.exit(1)
             except ClientError as excep:
@@ -165,8 +163,7 @@ class Conversation:
                     continue
                 elif excep.response['Error']['Code'] == 'ExpiredTokenException':
                     print(style.red("Your credentials have expired"))
-                    print(
-                        "Please run `ada cred update --account <account> --role <role> --once`")
+                    print("Please run `ada cred update --account <account> --role <role> --once`")
                     self.bedrock_client.close()
                     sys.exit(1)
                 elif excep.response['Error']['Code'] == 'UnrecognizedClientException':
@@ -176,23 +173,18 @@ class Conversation:
                     sys.exit(1)
                 elif excep.response['Error']['Code'] == 'ValidationException':
                     if "model identifier is invalid" in excep.response['Error']['Message']:
-                        Config.verboseprint(
-                            style.red(excep.response['Error']['Message']))
+                        print(style.red(excep.response['Error']['Message']))
                         self.bedrock_client.close()
                         sys.exit(1)
                     elif "with on-demand throughput" in excep.response['Error']['Message']:
-                        Config.verboseprint(
-                            style.red(excep.response['Error']['Message']))
+                        print(style.red(excep.response['Error']['Message']))
                         print("Try prefixing your model ID with 'us.'")
                         sys.exit(1)
                     elif cleaned_conversation:
                         self.remove_all_except_checkpoint()
                         return ''
                     cleaned_conversation = True
-                    Config.verboseprint(
-                        style.red(excep.response['Error']['Message']))
-                    Config.verboseprint(style.yellow(
-                        "The conversation is way too long, let me shorten it"))
+                    Config.verboseprint(style.yellow("The conversation is way too long, let me shorten it"))
                     self.remove_till_checkpoint()
                     continue
                 else:
