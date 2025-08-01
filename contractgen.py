@@ -20,6 +20,10 @@ def is_annotated_already(file_to_annotate: str):
     return r.returncode == 0
 
 
+def is_remote(file_to_annotate: str):
+    return file_to_annotate.startswith("https://") or file_to_annotate.startswith("http://")
+
+
 def main():
     style.init()
 
@@ -37,11 +41,11 @@ def main():
     arbiter.hi()
 
     for f in Config.files_to_annotate:
-        if not os.path.isfile(f):
+        if not is_remote(f) and not os.path.isfile(f):
             Config.verboseprint(style.yellow(
                 f'\nFile {f.removesuffix('\n')} not found. Skipping'))
             continue
-        if is_annotated_already(f):
+        if not is_remote(f) and is_annotated_already(f):
             Config.verboseprint(style.yellow(
                 f'\nFile {f.removesuffix('\n')} is already annotated. Skipping'))
             continue
@@ -97,7 +101,7 @@ def main():
                 Config.log(f'{f}: no harnesses to generate')
 
         generated_file = Config.target_dir + worker.file_id + "_annotated.rs"
-        if Config.update_source and os.path.isfile(generated_file):
+        if not is_remote(f) and Config.update_source and os.path.isfile(generated_file):
             Config.verboseprint("Replacing the original file", f)
             shutil.copyfile(generated_file, f)
 
