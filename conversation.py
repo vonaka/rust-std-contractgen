@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import base64
 import boto3
 import pathlib
@@ -8,7 +6,6 @@ import time
 
 import style
 
-# from botocore.errorfactory import AccessDeniedException
 from botocore.exceptions import ClientError, ReadTimeoutError
 from configuration import Config
 
