@@ -5,8 +5,11 @@ import os
 import shutil
 import subprocess
 import sys
+import urllib
 
 import style
+
+from urllib.request import urlopen
 
 from arbiter import Arbiter
 from configuration import Config
@@ -22,6 +25,16 @@ def is_annotated_already(file_to_annotate: str):
 
 def is_remote(file_to_annotate: str):
     return file_to_annotate.startswith("https://") or file_to_annotate.startswith("http://")
+
+
+def file_exists(file_to_annotate: str):
+    try:
+        if is_remote(file_to_annotate):
+            urlopen(file_to_annotate).read()
+            return True
+        return os.path.isfile(file_to_annotate)
+    except urllib.error.HTTPError:
+        return False
 
 
 def main():
@@ -41,7 +54,7 @@ def main():
     arbiter.hi()
 
     for f in Config.files_to_annotate:
-        if not is_remote(f) and not os.path.isfile(f):
+        if not file_exists(f):
             Config.verboseprint(style.yellow(
                 f'\nFile {f.removesuffix('\n')} not found. Skipping'))
             continue
