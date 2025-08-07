@@ -7,6 +7,7 @@ import subprocess
 import sys
 import urllib
 
+from conversation import LongInputException
 import style
 
 from urllib.request import urlopen
@@ -36,6 +37,76 @@ def file_exists(file_to_annotate: str):
     except urllib.error.HTTPError:
         return False
 
+def handle_file(worker, arbiter, f: str):
+    if not file_exists(f):
+        Config.verboseprint(style.yellow(f'\nFile {f.removesuffix('\n')} not found. Skipping'))
+        return
+    # TODO: make this skip optional
+    # if not is_remote(f) and is_annotated_already(f):
+    #     Config.verboseprint(style.yellow(
+    #         f'\nFile {f.removesuffix('\n')} is already annotated. Skipping'))
+    #     return
+
+    worker.set_file_to_annotate(f)
+    worker.generate_contracts()
+    contracts = worker.autorefine_contracts()
+
+    grade = arbiter.assess_worker(Config.target_dir + worker.file_id + ".rs", contracts)
+    Config.log(f'{f}: initial grade: {grade}/5')
+    arbiter.log_summary()
+
+    max_try = 3
+    while max_try > 0:
+        improvements = arbiter.ask_to_improve()
+        if improvements == '':
+            break
+        worker.refine_contracts(improvements)
+        contracts = worker.autorefine_contracts()
+        grade = arbiter.reassess_worker(contracts)
+        max_try -= 1
+
+    Config.log(f'{f}: final grade: {grade}/5')
+    Config.log(f'{f}: number of refinement rounds: {4 - max_try}')
+    arbiter.log_summary()
+    worker.log_summary()
+
+    if grade < 4:
+        Config.verboseprint(style.yellow(f'The annotation is not good enough. Skipping the rest'))
+        return
+    # TODO: Save contracts with the highest grade
+    worker.save_generated_contracts()
+
+    if Config.gen_harnesses:
+        harnesses = worker.generate_harnesses()
+        if harnesses != '':
+            grade = arbiter.assess_harnesses(harnesses)
+            Config.log(f'{f}: initial grade (harnesses): {grade}/5')
+            arbiter.log_summary()
+            if grade < 5:
+                improvements = arbiter.ask_to_improve()
+                if improvements != '':
+                    harnesses = worker.refine_harnesses(improvements)
+                    grade = arbiter.reassess_worker(harnesses)
+            Config.log(f'{f}: final grade (harnesses): {grade}/5')
+            arbiter.log_summary()
+            # Save only excellent harnesses
+            if grade == 5:
+                worker.save_generated_harnesses()
+        else:
+            Config.log(f'{f}: no harnesses to generate')
+
+    generated_file = Config.target_dir + worker.file_id + "_annotated.rs"
+    if not is_remote(f) and Config.update_source and os.path.isfile(generated_file):
+        Config.verboseprint("Replacing the original file", f)
+        shutil.copyfile(generated_file, f)
+
+        if Config.try_compile:
+            ok = arbiter.try_to_compile()
+            if not ok:
+                Config.verboseprint(style.yellow(f'Compilation failed. Reverting the changes'))
+                Config.log(f'{f}: compilation failed')
+                # TODO: try to refine before reverting, or at least try adding contracts without proofs
+                subprocess.run(["git", "-C", Config.source_dir, "checkout", f], check=False, capture_output=True)
 
 def main():
     style.init()
@@ -54,79 +125,13 @@ def main():
     arbiter.hi()
 
     for f in Config.files_to_annotate:
-        if not file_exists(f):
-            Config.verboseprint(style.yellow(
-                f'\nFile {f.removesuffix('\n')} not found. Skipping'))
+        try:
+            handle_file(worker, arbiter, f)
+        except LongInputException:
+            print(style.yellow("The model returned the following errors: Input is too long for requested model"))
+            print("You probably attached a large file")
+            Config.verboseprint('Skipping')
             continue
-        if not is_remote(f) and is_annotated_already(f):
-            Config.verboseprint(style.yellow(
-                f'\nFile {f.removesuffix('\n')} is already annotated. Skipping'))
-            continue
-
-        worker.set_file_to_annotate(f)
-        worker.generate_contracts()
-        contracts = worker.autorefine_contracts()
-
-        grade = arbiter.assess_worker(
-            Config.target_dir + worker.file_id + ".rs", contracts)
-        Config.log(f'{f}: initial grade: {grade}/5')
-        arbiter.log_summary()
-
-        max_try = 3
-        while max_try > 0:
-            improvements = arbiter.ask_to_improve()
-            if improvements == '':
-                break
-            worker.refine_contracts(improvements)
-            contracts = worker.autorefine_contracts()
-            grade = arbiter.reassess_worker(contracts)
-            max_try -= 1
-
-        Config.log(f'{f}: final grade: {grade}/5')
-        Config.log(f'{f}: number of refinement rounds: {4 - max_try}')
-        arbiter.log_summary()
-        worker.log_summary()
-
-        if grade < 4:
-            Config.verboseprint(style.yellow(
-                f'The annotation is not good enough. Skipping the rest'))
-            continue
-        # TODO: Save contracts with the highest grade
-        worker.save_generated_contracts()
-
-        if Config.gen_harnesses:
-            harnesses = worker.generate_harnesses()
-            if harnesses != '':
-                grade = arbiter.assess_harnesses(harnesses)
-                Config.log(f'{f}: initial grade (harnesses): {grade}/5')
-                arbiter.log_summary()
-                if grade < 5:
-                    improvements = arbiter.ask_to_improve()
-                    if improvements != '':
-                        harnesses = worker.refine_harnesses(improvements)
-                        grade = arbiter.reassess_worker(harnesses)
-                Config.log(f'{f}: final grade (harnesses): {grade}/5')
-                arbiter.log_summary()
-                # Save only excellent harnesses
-                if grade == 5:
-                    worker.save_generated_harnesses()
-            else:
-                Config.log(f'{f}: no harnesses to generate')
-
-        generated_file = Config.target_dir + worker.file_id + "_annotated.rs"
-        if not is_remote(f) and Config.update_source and os.path.isfile(generated_file):
-            Config.verboseprint("Replacing the original file", f)
-            shutil.copyfile(generated_file, f)
-
-            if Config.try_compile:
-                ok = arbiter.try_to_compile()
-                if not ok:
-                    Config.verboseprint(style.yellow(
-                        f'Compilation failed. Reverting the changes'))
-                    Config.log(f'{f}: compilation failed')
-                    # TODO: try to refine before reverting, or at least try adding contracts without proofs
-                    subprocess.run(["git", "-C", Config.source_dir,
-                                   "checkout", f], check=False, capture_output=True)
 
 
 if __name__ == '__main__':

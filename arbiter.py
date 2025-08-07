@@ -3,7 +3,7 @@ import subprocess
 import style
 
 from configuration import Config
-from conversation import Conversation
+from conversation import Conversation, LongInputException
 
 
 class Arbiter:
@@ -147,14 +147,18 @@ class Arbiter:
             Config.verboseprint(f'\tLooks fine')
             return True
 
-        self.conversation.send_message_str(
-            """
-            The annotated code does not compile! Please review the compilation messages below carefully.
-            You should ensure that the worker avoids repeating these or similar mistakes in the future.
-            Later, you may be asked to guide the worker in fixing these specific issues.
+        try:
+            self.conversation.send_message_str(
+                """
+                The annotated code does not compile! Please review the compilation messages below carefully.
+                You should ensure that the worker avoids repeating these or similar mistakes in the future.
+                Later, you may be asked to guide the worker in fixing these specific issues.
 
-            Rust compiler output:
-            """ + r.stdout
-        )
-        self.conversation.converse()
+                Rust compiler output:
+                """ + r.stdout
+            )
+            self.conversation.converse()
+        except LongInputException:
+            print(style.yellow("Way too faulty... Nevermind"))
+
         return False
