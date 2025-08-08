@@ -14,7 +14,7 @@ By default, the file is fetched from `https://raw.githubusercontent.com/model-ch
 
 #### Updating the Original Source File
 
-If you're using a local source directory, you can automatically replace the original file with the annotated version using the `-u` flag. Add the `-k` flag to ensure that the file is updated only if the generated contracts compile successfully.
+When using a local source directory, the original file can be automatically replaced with the annotated version using the `-u` flag. The `-k` flag ensures that the file is only updated if the generated contracts compile successfully.
 
 #### Generating Proofs
 
@@ -24,7 +24,7 @@ To generate proofs for the annotated code, use the `-p` flag:
 
 #### Configuration Files
 
-Instead of using command-line flags, you can provide all options through a configuration file. Example of a configuration file `config.conf`:
+Instead of using command-line flags, all options can be provided through a configuration file. Below is an example of a configuration file `config.conf`:
 ```
 files_to_annotate:
     library/alloc/src/collections/linked_list.rs
