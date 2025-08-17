@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
+import os
 import re
+import shutil
 import subprocess
 import sys
 
@@ -202,7 +204,7 @@ def insert_requires(original: str, requires: str, updated: str):
         og.insert(i, l)
 
     if no_attrs:
-        return
+        return False
     if inner != -1 and not ("library-core-" in original) and not is_annotated_already(original):
         og.insert(inner, "#![feature(ub_checks)]\n")
     if use != -1 and not is_annotated_already(original):
@@ -229,6 +231,33 @@ use core::ub_checks::*;\n\n"""
     with open(updated, "w") as f:
         f.writelines(og)
 
+    return True
+
+
+def insert_type_invarinats(rust_file: str, requires_file: str, output_file: str, attr: bool):
+    if not attr or not os.path.exists(output_file):
+        shutil.copy(rust_file, output_file)
+
+    with open(requires_file, "r") as f:
+        ls = f.readlines()
+    i = 0
+    invs = []
+    while i < len(ls):
+        if "type invariant" in ls[i].lower():
+            i+=1
+            while i < len(ls) and ls[i].strip() == '':
+                i+=1
+            if i < len(ls):
+                invs = ls[i:]
+            break
+        i+=1
+    if invs != []:
+        with open(output_file, 'a') as file:
+            file.write(f'\n' + "".join(invs))
+
+def annotate_file(rust_file, require_file, output_file):
+    attr = insert_requires(rust_file, require_file, output_file)
+    insert_type_invarinats(rust_file, require_file, output_file, attr)
 
 if __name__ == "__main__":
     if len(sys.argv) < 4:
@@ -240,4 +269,4 @@ if __name__ == "__main__":
     require_file = sys.argv[2]
     output_file = sys.argv[3]
 
-    insert_requires(rust_file, require_file, output_file)
+    annotate_file(rust_file, require_file, output_file)

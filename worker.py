@@ -2,7 +2,7 @@ import os
 from subprocess import run
 from urllib.request import urlopen
 
-from add_contracts import insert_requires
+from add_contracts import annotate_file
 from configuration import Config
 from conversation import Conversation
 
@@ -35,6 +35,25 @@ class Worker:
         self.attach_file()
         self.conversation.converse()
         self.conversation.send_message_from_file('worker_closing_refine.txt')
+        self.generated_contracts = self.conversation.converse()
+        if Config.gen_type_invariants:
+            self.generated_contracts = self.generate_type_invariants()
+        return self.generated_contracts
+
+    def generate_type_invariants(self):
+        if self.file_to_annotate == '' or self.generated_contracts == '':
+            Config.verboseprint('No type invarinats to generate')
+            return ''
+
+        Config.verboseprint(f'\tGenerating type invariants')
+
+        self.conversation.send_message_from_file('worker_type_invariant.txt')
+        self.conversation.converse()
+        self.conversation.send_message_str(f'''
+            Please print your solution without any explanations.
+            First, print the valid contracts in the original format you used.
+            Then, print the type invariants in the format I described above.
+        ''')
         self.generated_contracts = self.conversation.converse()
         return self.generated_contracts
 
@@ -143,9 +162,9 @@ class Worker:
 
         Config.verboseprint(
             f'\tApplying contracts to {Config.target_dir}{self.file_id}.rs')
-        insert_requires(Config.target_dir + self.file_id + ".rs",
-                        Config.target_dir + self.file_id + "_contracts.rs",
-                        Config.target_dir + self.file_id + "_annotated.rs")
+        annotate_file(Config.target_dir + self.file_id + ".rs",
+                      Config.target_dir + self.file_id + "_contracts.rs",
+                      Config.target_dir + self.file_id + "_annotated.rs")
 
     def save_generated_harnesses(self):
         if self.generated_harnesses == '':
@@ -208,6 +227,10 @@ class Worker:
 
         ls = self.generated_contracts.split('\n')
         for (i, l) in enumerate(ls):
+            if "type invariant" in l.lower(): # missing 's' in 'invariants' on purpose
+                if i-1 >= 0 and ls[i-1].strip() != '':
+                    res.append(ls[i-1])
+                return res
             if l.strip() == '':
                 res.append(ls[i-1])
         if ls[-1].strip() != '':

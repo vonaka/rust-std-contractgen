@@ -27,6 +27,8 @@ class Config:
     gen_harnesses = False
     # run Kani to verify that the annotations compile without errors
     try_compile = False
+    # generate type invarinats
+    gen_type_invariants = True
     # worker region
     worker_region = "us-west-2"
     # arbiter region
@@ -46,6 +48,7 @@ class Config:
                  source_dir: str = "",
                  update_source = None,
                  gen_harnesses = None,
+                 gen_type_invariants = None,
                  try_compile = None,
                  verbose = None,
                  config_filename: str = ""):
@@ -67,6 +70,8 @@ class Config:
             Config.update_source = update_source
         if gen_harnesses is not None:
             Config.gen_harnesses = gen_harnesses
+        if gen_type_invariants is not None:
+            Config.gen_type_invariants = gen_type_invariants
         if try_compile is not None:
             Config.try_compile = try_compile
         if verbose is not None:
@@ -144,6 +149,8 @@ class Config:
                     Config.update_source = conf["config"]["update_source"].lower() == "true"
                 if "gen_harnesses" in conf["config"]:
                     Config.gen_harnesses = conf["config"]["gen_harnesses"].lower() == "true"
+                if "gen_type_invariants" in conf["config"]:
+                    Config.gen_type_invariants = conf["config"]["gen_type_invariants"].lower() == "true"
                 if "try_compile" in conf["config"]:
                     Config.try_compile = conf["config"]["try_compile"].lower() == "true"
                 if "worker_region" in conf["config"]:
@@ -175,6 +182,7 @@ class Config:
         print(f'Source dir: {Config.source_dir}')
         print(f'Update source: {Config.update_source}')
         print(f'Generate harnesses: {Config.gen_harnesses}')
+        print(f'Generate type invariants: {Config.gen_type_invariants}')
         print(f'Try to run Kani: {Config.try_compile}')
         print(f'Verbose mode: {Config.verbose}')
         out = output.getvalue()

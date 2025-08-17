@@ -30,6 +30,18 @@ class Arbiter:
             """ + "\n" + worker_output,
             original_file)
         self.conversation.set_checkpoint()
+        if Config.gen_type_invariants:
+            self.conversation.send_file_with_message(
+                """
+                In addition to what you already know, the worker was also asked to generate type
+                invariants. The attached file contains the instructions the worker received. You
+                should take this into account in your evaluation of the worker. Please read the
+                instructions carefully, as they directly impact the expected output format from
+                the worker. In particular, the worker MUST NOT output contracts for functions
+                that are not unsafe - in such cases, it may only generate type invariants.
+                """,
+                Config.prompt_dir + 'worker_type_invariant.txt'
+            )
         self.conversation.converse()
         return self.get_grade()
 

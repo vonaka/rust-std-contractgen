@@ -126,6 +126,7 @@ It should then output its reply in the following format:
 
           // Check if a float is representable in the given integer type
           float_to_int_in_range<Float, Int>(value: Float) -> bool;
+
 Your Job
 ========
 
@@ -169,6 +170,8 @@ Common Mistakes to Fix:
 9. Contracts refere to `std::` -- this is forbidden.
 10. In Rust, `a ==> b` is not a valid way to express the logical implication. This should be
     replaced by `!(a) || b`.
+11. The worker generated a contract for a function that is not `unsafe`. This is not a valid
+    contract and should be removed, unless it is a type invariant.
 
 Important Guidelines
 ====================

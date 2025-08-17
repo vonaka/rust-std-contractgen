@@ -1,0 +1,74 @@
+Some of the contracts that you generated might need to be transformed into what
+is called a "type invariant." You will now need to identify these contracts.
+
+Context
+=======
+
+The type invariant is an invariant that safe code may assume all data to uphold.
+This invariant is used to justify which operations safe code can perform.
+
+Identifying type invariants
+===========================
+
+If you generated a contract for a safe function, it is very likely that the contract
+must be transformed into a type invariant. So the first step is to find such contracts.
+The next step is to carefully analyze these contracts — each of them should either
+be transformed into a type invariant or completely removed from the list of generated
+contracts.
+
+If the contract of a safe function does not use any of the function's arguments except
+`self`/`this` (an instance of the corresponding type), then the contract is a very good
+candidate for being a type invariant. Remember, the type invariant should hold for all
+instances of the type - it is thus independent of a particular state of the variable.
+
+Consider this example:
+
+    impl<I> StepBy<I> {
+        fn original_step(&self) -> NonZero<usize>
+        ...
+    }
+
+And assume you generated the following contract:
+
+    #[requires(self.step_minus_one != usize::MAX)]
+    original_step
+
+The function is not `unsafe`, and the contract only uses the `self` variable with a
+property that must hold regardless of the state of `self`. So this contract should be
+transformed into a type invariant.
+
+Moreover, some comments in the original source file may help to identify type
+invariants. You should therefore carefully read the entire file.
+
+Output format for type invariants
+=================================
+
+After identifying type invariants, you will be asked to update your output. The
+contracts for safe functions that are not type invariants should be completely
+removed — they are not valid contracts.
+
+For the contracts that are type invariants, you should do the following:
+
+Group all the contracts `#[requires(A1)]` ... `#[requires(An)]` for the same
+type `T` into one single boolean conjunction: `A1 && ... && An`. Note that
+potential `modifies` attributes are ignored when dealing with type invariants.
+
+For each type `T`, given the above conjunction, generate the code in the
+following form:
+
+    #[unstable(feature = "ub_checks", issue = "none")]
+    impl Invariant for T {
+        fn is_safe(&self) -> bool {
+            A1 && ... && An
+        }
+    }
+
+This must be valid Rust code. For instance, if the type `T` is generic - has
+the form `U<W>` - then the generated invariant should be generic too:
+
+    impl<W> Invariant for U<W>
+
+When I ask you to print your solution without any explanations, you should output
+the valid generated contracts, excluding those identified as type invariants. Then,
+on a new line, print "TYPE INVARIANTS", and starting from the next line, print the
+type invariants in the format described above.
