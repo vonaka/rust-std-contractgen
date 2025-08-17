@@ -8,7 +8,7 @@ To generate preconditions for a file from the Rust standard library (e.g., `libr
 
 This will generate a copy of `alloc.rs` with inserted preconditions and save it under `target/alloc_src_alloc_annotated.rs`.
 
-By default, the file is fetched from `https://raw.githubusercontent.com/model-checking/verify-rust-std/refs/heads/main`. To use a local source directory instead, specify it with the `-s` option:
+By default, the file is fetched from `https://raw.githubusercontent.com/model-checking/verify-rust-std/refs/heads/main`. To use a local [verify-rust-std](https://github.com/model-checking/verify-rust-std) source directory instead, specify it with the `-s` option:
 
 `python3 contractgen.py -v -f library/alloc/src/alloc.rs -s ~/verify-rust-std`
 
@@ -33,6 +33,7 @@ files_to_annotate:
 
 source_dir = ~/verify-rust-std
 gen_harnesses = true
+gen_type_invariants = true
 update_source = true
 try_compile = true
 verbose = true
