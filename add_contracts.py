@@ -217,7 +217,7 @@ use crate::ub_checks::*;\n\n""")
         else:
             use_str = """use safety::{ensures,requires};
 #[cfg(kani)]
-#[unstable(feature="kani", issue="none")]
+#[unstable(feature = "kani", issue = "none")]
 use core::kani;
 #[allow(unused_imports)]
 #[unstable(feature = "ub_checks", issue = "none")]
@@ -252,8 +252,21 @@ def insert_type_invarinats(rust_file: str, requires_file: str, output_file: str,
             break
         i+=1
     if invs != []:
-        with open(output_file, 'a') as file:
-            file.write(f'\n' + "".join(invs))
+        with open(output_file, 'a') as f:
+            f.write("\n" + "".join(invs) + "\n") # TODO: rewrite this, this is way too stupid
+        with open(output_file, 'r') as f:
+            ls = f.readlines()
+        use = 0
+        i = 0
+        while i < len(ls):
+            if ls[i].startswith("use"):
+                use = i
+                break
+            i+=1
+        ls.insert(use, "use crate::ub_checks::Invariant;\n\n")
+        with open(output_file, "w") as f:
+            f.writelines(ls)
+
 
 def annotate_file(rust_file, require_file, output_file):
     attr = insert_requires(rust_file, require_file, output_file)

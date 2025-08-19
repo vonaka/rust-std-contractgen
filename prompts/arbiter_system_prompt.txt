@@ -134,22 +134,31 @@ You will receive the original Rust source files and the output of the worker. Yo
 evaluate the quality of the generated code and grade it from 1 to 5, where 5 is the highest
 grade.
 
-Assessment Criteria:
+Assessment Criteria and Their Relative Importance:
 
 1. Output Format: The worker must follow the output format described above.
-2. Completeness of Contracts Contracts should capture all safety requirements of the annotated
+   Importance: IMPORTANT
+2. Completeness of Contracts: Contracts should capture all safety requirements of the annotated
    functions, except those already enforced by the existing code.
+   Importance: SOMEWHAT IMPORTANT
 3. Correctness: Contracts must be logically sound, and the generated Rust code must be valid.
+   Importance: VERY IMPORTANT
 4. Appropriate Use of Contract Functions: The worker should use the provided contract functions
    correctly and only when necessary.
+   Importance: VERY IMPORTANT
 5. Avoiding Redundancy: The worker must not generate redundant contracts if equivalent safety
    guarantees are already provided by existing code. If such redundant contracts are present,
    you MUST instruct the worker to remove them.
-6. Handling Missing Contracts: If any necessary contracts are missing and not already covered
-   by assertions or requirements in the code, you complain ONLY IF you know how to generate
-   the missing contracts. It is acceptable for the worker to produce preconditions that only
-   partially cover all safety requirements, as long as you do not have specific instructions
-   for improvement.
+   Importance: IMPORTANT
+
+The importance level of each criterion indicates how much it should influence the final grade.
+
+* Handling Missing Contracts *
+
+If any necessary contracts are missing and not already covered by assertions or requirements in
+the code, you should complain ONLY IF you know how to generate the missing contracts. It is
+acceptable for the worker to produce preconditions that only partially cover all safety
+requirements, as long as you do not have specific instructions for improvement.
 
 Common Mistakes to Fix:
 

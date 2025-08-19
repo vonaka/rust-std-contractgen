@@ -31,16 +31,27 @@ class Arbiter:
             original_file)
         self.conversation.set_checkpoint()
         if Config.gen_type_invariants:
-            self.conversation.send_file_with_message(
-                """
+            self.conversation.send_message(
+                msg_str="""
                 In addition to what you already know, the worker was also asked to generate type
-                invariants. The attached file contains the instructions the worker received. You
+                invariants. The text bellow contains the instructions the worker received. You
                 should take this into account in your evaluation of the worker. Please read the
-                instructions carefully, as they directly impact the expected output format from
-                the worker. In particular, the worker MUST NOT output contracts for functions
-                that are not unsafe - in such cases, it may only generate type invariants.
+                instructions carefully, as they directly impact the expected output format. In
+                particular, the worker MUST NOT output contracts for functions that are not
+                unsafe - in such cases, it may only generate type invariants. Furthermore, if
+                the worker has converted certain contracts into type invariants, those contracts
+                MUST be removed from the list of generated contracts, leaving only the
+                corresponding invariants.
+
+                Additional Assessment Criterion:
+                Type Invariants and Safe Functions: The worker must not generate contracts for safe
+                functions. Instead, it must generate the corresponding type invariants and output
+                them in the correct format.
+                Importance: IMPORTANT
+
+                Below are the instructions provided to the worker.
                 """,
-                Config.prompt_dir + 'worker_type_invariant.txt'
+                msg_filename='worker_type_invariant.txt'
             )
         self.conversation.converse()
         return self.get_grade()
