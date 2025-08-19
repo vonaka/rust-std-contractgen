@@ -62,3 +62,5 @@ options:
   -v, --verbose        verbose mode
   -c, --config CONFIG  configuration file
 ```
+
+Note that, currently, `gen_type_invariants`, `worker_region`, and `arbiter_region` can only be configured through the configuration file.
