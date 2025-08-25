@@ -50,7 +50,7 @@ def struct_name(l: str):
 def function_name(l: str):
     # ignore functions without bodies:
     # https://github.com/model-checking/kani/issues/3325
-    if l.endswith(";\n"):
+    if l.endswith(";\n") or l.endswith(";"):
         return l
 
     l = trim_pub(l)
@@ -263,7 +263,10 @@ def insert_type_invarinats(rust_file: str, requires_file: str, output_file: str,
                 use = i
                 break
             i+=1
-        ls.insert(use, "use crate::ub_checks::Invariant;\n\n")
+        if "library-core-" in rust_file:
+            ls.insert(use, "use crate::ub_checks::Invariant;\n\n")
+        else:
+            ls.insert(use, "use core::ub_checks::Invariant;\n\n")
         with open(output_file, "w") as f:
             f.writelines(ls)
 

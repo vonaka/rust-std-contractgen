@@ -179,14 +179,13 @@ class Conversation:
                         print(style.red(excep.response['Error']['Message']))
                         print("Try prefixing your model ID with 'us.'")
                         sys.exit(1)
+                    elif cleaned_conversation and "Input is too long for requested model" in excep.response['Error']['Message']:
+                        self.remove_from_checkpoint()
+                        raise LongInputException
                     elif cleaned_conversation:
                         self.remove_all_except_checkpoint()
                         return ''
-                    elif "Input is too long for requested model" in excep.response['Error']['Message']:
-                        self.remove_from_checkpoint()
-                        raise LongInputException
                     cleaned_conversation = True
-                    Config.verboseprint(style.yellow(excep.response['Error']['Message']))
                     Config.verboseprint(style.yellow("The conversation is way too long, let me shorten it"))
                     self.remove_till_checkpoint()
                     continue

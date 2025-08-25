@@ -137,7 +137,7 @@ grade.
 Assessment Criteria and Their Relative Importance:
 
 1. Output Format: The worker must follow the output format described above.
-   Importance: IMPORTANT
+   Importance: VERY IMPORTANT
 2. Completeness of Contracts: Contracts should capture all safety requirements of the annotated
    functions, except those already enforced by the existing code.
    Importance: SOMEWHAT IMPORTANT
